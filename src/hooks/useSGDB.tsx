@@ -19,6 +19,8 @@ import showRestartConfirm from '../utils/showRestartConfirm';
 import getCurrentSteamUserId from '../utils/getCurrentSteamUserId';
 import getCustomLogoPosition from '../utils/getCustomLogoPosition';
 
+import useSettings from './useSettings';
+
 /*
   special key only for use with this decky plugin
   attempting to use this in your own projects will
@@ -100,6 +102,7 @@ const getApiParams = (assetType: SGDBAssetType, filters: any, page: number) => {
 export const SGDBContext = createContext({});
 
 export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
+  const { get } = useSettings();
   const [appId, setAppId] = useState<number>(0);
   const [appOverview, setAppOverview] = useState<AppStoreAppOverview | null>(null);
 
@@ -155,7 +158,9 @@ export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
     }
   }, [appId, appOverview, clearAsset]);
 
-  const apiRequest = useCallback((url: string, signal?: AbortSignal): Promise<any[]> => {
+  const apiRequest = useCallback(async (url: string, signal?: AbortSignal): Promise<any[]> => {
+    const sessionID = await get('session_id', '');
+
     return new Promise((resolve, reject) => {
       if (signal?.aborted) return reject(new DOMException('Aborted', 'AbortError'));
 
@@ -163,12 +168,19 @@ export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
         reject(new DOMException('Aborted', 'AbortError'));
       };
 
+      const authenticationHeader: Record<string, string> = {};
+      if (sessionID) {
+        authenticationHeader['Cookie'] = `PHPSESSID=${sessionID}`;
+      } else {
+        authenticationHeader['Authorization'] = `Bearer ${SGDB_API_KEY}`;
+      }
+
       signal?.addEventListener('abort', abortHandler);
       fetchNoCors(`${SGDB_API_BASE}${url}`, {
         method: 'GET',
         headers: {
           Accept: 'application/json',
-          Authorization: `Bearer ${SGDB_API_KEY}`,
+          ...authenticationHeader,
         },
       }).then((res) => {
         log(res);
@@ -192,7 +204,7 @@ export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
         signal?.removeEventListener('abort', abortHandler);
       });
     });
-  }, []);
+  }, [get]);
 
   const getImageAsB64 = useCallback(async (location: string, path = false) : Promise<string | null> => {
     log('downloading', location);

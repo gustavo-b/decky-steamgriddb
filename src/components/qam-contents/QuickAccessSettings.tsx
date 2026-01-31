@@ -11,6 +11,7 @@ import {
   DialogBodyText,
   ToggleField,
   SliderField,
+  TextField,
 } from '@decky/ui';
 import { FileSelectionType, openFilePicker } from '@decky/api';
 import { useState, useEffect, VFC, useCallback } from 'react';
@@ -68,6 +69,7 @@ const QuickAccessSettings: VFC = () => {
   const [uniformFeatured, setUniformFeatured] = useState<boolean>(false);
   const [motdToggle, setMotdToggle] = useState<boolean>(false);
   const [capsuleGlowAmount, setCapsuleGlowAmount] = useState(100);
+  const [sessionID, setSessionID] = useState<string>('');
   const [debugAppid] = useState('70');
 
   const handleMotdToggle = useCallback(async (val: boolean) => {
@@ -108,6 +110,12 @@ const QuickAccessSettings: VFC = () => {
     setUseCount(val);
   }, [set]);
 
+  const handleSessionIDChange = useCallback(async (evt: any) => {
+    const val = evt.target.value;
+    set('session_id', val, true);
+    setSessionID(val);
+  }, [set]);
+
   useEffect(() => {
     (async () => {
       setUseCount(await get('plugin_use_count', 0));
@@ -115,6 +123,7 @@ const QuickAccessSettings: VFC = () => {
       setUniformFeatured(await get('uniform_featured', false));
       setCapsuleGlowAmount(await get('capsule_glow_amount', 100));
       setMotdToggle(await get('motd_hidden_global', false));
+      setSessionID(await get('session_id', ''));
     })();
   }, [get]);
 
@@ -264,6 +273,19 @@ const QuickAccessSettings: VFC = () => {
             >
               {t('LABEL_SETTINGS_ASSET_TABS', 'Asset Tab Settings')}
             </DialogButton>
+          </Field>
+        </PanelSectionRow>
+        <PanelSectionRow>
+          <Field
+            label={t('LABEL_SESSION_ID', 'Session ID')}
+            description={t('LABEL_SESSION_ID_DESC', 'Use your browser\'s SteamGridDB Session ID cookie to see your unverified games. Leave empty to use the default key.')}
+            childrenLayout="below"
+          >
+            <TextField
+              value={sessionID}
+              onChange={handleSessionIDChange}
+              placeholder={t('LABEL_SESSION_ID_PLACEHOLDER', 'Enter your Session ID...')}
+            />
           </Field>
         </PanelSectionRow>
         <PanelSectionRow>
