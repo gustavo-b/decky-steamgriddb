@@ -86,7 +86,7 @@ export const LANGS: {
   ja: {
     name: '日本語',
     strings: ja,
-    credit: ['Nes'],
+    credit: ['Nes', 'Hogman'],
   },
   ko: {
     name: '한국어',
