@@ -52,11 +52,11 @@ export const addSquareLibraryPatch = (mounting = false) => {
     `);
 
     afterPatch(props.children, 'type', (_: Record<string, unknown>[], ret?: any) => {
-      
+
       let tabsWrapperCache: any = null;
 
       afterPatch(ret, 'type', (_: Record<string, unknown>[], ret2?: any) => {
-        
+
         if (tabsWrapperCache) {
           ret2.type = tabsWrapperCache;
           return ret2;
@@ -70,11 +70,11 @@ export const addSquareLibraryPatch = (mounting = false) => {
           const { tabs, activeTab } = findInReactTree(ret3, (x) => x?.tabs && x?.activeTab);
           const tab = tabs?.find((x: any) => x.id == activeTab);
 
-          if (!tab || tab.content.props?.collectionid === null) { 
+          if (!tab || tab.content.props?.collectionid === null) {
             return ret3;
           }
 
-          if (tab.content.props.children || tab.content.props.collection || tab.content.type) { 
+          if (tab.content.props.children || tab.content.props.collection || tab.content.type) {
             const collection = tab.content.props?.children || tab.content;
             const uniqueTabKey = activeTab || 'unknown-tab';
 
@@ -88,8 +88,8 @@ export const addSquareLibraryPatch = (mounting = false) => {
                 // Main Library (Installed, All Games)
                 // Patch component type so we can intercept the OUTPUT (ret5)
                 patchDeepComponent(p1, `${uniqueTabKey}_grid`, (_: Record<string, unknown>[], ret5) => {
-                    patchGridProps(ret5); // Modifying the rendered output fixes the selection border
-                    return ret5;
+                  patchGridProps(ret5); // Modifying the rendered output fixes the selection border
+                  return ret5;
                 });
               } else if (coverSizeComponent) {
                 return ret4;
@@ -97,23 +97,23 @@ export const addSquareLibraryPatch = (mounting = false) => {
                 if (ret4.props.children[0]?.props?.collectionid) {
                   // User Collections
                   const collectionContainer = ret4.props.children[0];
-                  
+
                   patchDeepComponent(collectionContainer, `${uniqueTabKey}_container`, (_: Record<string, unknown>[], ret5) => {
                     const innerC = findInReactTree(ret5, (x) => x?.type && x.props?.collection?.id);
                     if (innerC) {
-                        const innerId = innerC.props?.collection?.id || 'inner';
-                        patchDeepComponent(innerC, `${uniqueTabKey}_${innerId}`, (_: Record<string, unknown>[], ret6) => {
-                            const grid = findInReactTree(ret6, (x) => x?.type && x.props?.appOverviews);
-                            
-                            if (grid) {
-                                // Patch the grid inside the collection
-                                patchDeepComponent(grid, `${uniqueTabKey}_${innerId}_grid`, (_: Record<string, unknown>[], ret7) => {
-                                    patchGridProps(ret7); // Fix dimensions on output
-                                    return ret7;
-                                });
-                            }
-                            return ret6;
-                        });
+                      const innerId = innerC.props?.collection?.id || 'inner';
+                      patchDeepComponent(innerC, `${uniqueTabKey}_${innerId}`, (_: Record<string, unknown>[], ret6) => {
+                        const grid = findInReactTree(ret6, (x) => x?.type && x.props?.appOverviews);
+
+                        if (grid) {
+                          // Patch the grid inside the collection
+                          patchDeepComponent(grid, `${uniqueTabKey}_${innerId}_grid`, (_: Record<string, unknown>[], ret7) => {
+                            patchGridProps(ret7); // Fix dimensions on output
+                            return ret7;
+                          });
+                        }
+                        return ret6;
+                      });
                     }
                     return ret5;
                   });
@@ -121,20 +121,20 @@ export const addSquareLibraryPatch = (mounting = false) => {
                 } else {
                   // Non-Steam Shortcuts
                   const p2 = findInReactTree(ret4, (x) => x?.type && x.props?.collection?.id === 'deck-desktop-apps');
-                  
+
                   if (p2) {
-                      patchDeepComponent(p2, 'deck-desktop-apps-container', (_: Record<string, unknown>[], ret5) => {
-                        const grid = findInReactTree(ret5, (x) => x?.type && x.props?.appOverviews);
-                        
-                        if (grid) {
-                            // Patch the grid inside Non-Steam
-                            patchDeepComponent(grid, 'deck-desktop-apps-grid', (_: Record<string, unknown>[], ret6) => {
-                                patchGridProps(ret6); // Fix dimensions on output
-                                return ret6;
-                            });
-                        }
-                        return ret5;
-                      });
+                    patchDeepComponent(p2, 'deck-desktop-apps-container', (_: Record<string, unknown>[], ret5) => {
+                      const grid = findInReactTree(ret5, (x) => x?.type && x.props?.appOverviews);
+
+                      if (grid) {
+                        // Patch the grid inside Non-Steam
+                        patchDeepComponent(grid, 'deck-desktop-apps-grid', (_: Record<string, unknown>[], ret6) => {
+                          patchGridProps(ret6); // Fix dimensions on output
+                          return ret6;
+                        });
+                      }
+                      return ret5;
+                    });
                   }
                 }
               }
