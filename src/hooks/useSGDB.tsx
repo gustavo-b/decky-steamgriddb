@@ -102,7 +102,7 @@ const getApiParams = (assetType: SGDBAssetType, filters: any, page: number) => {
 export const SGDBContext = createContext({});
 
 export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
-  const { get } = useSettings();
+  const { get, set } = useSettings();
   const [appId, setAppId] = useState<number>(0);
   const [appOverview, setAppOverview] = useState<AppStoreAppOverview | null>(null);
 
@@ -184,6 +184,12 @@ export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
         },
       }).then((res) => {
         log(res);
+
+        if (sessionID && (res.status === 401 || res.status === 403)) {
+          log('Session expired, clearing session ID and falling back to API key');
+          set('session_id', '', true);
+        }
+
         if (res.status !== 200 && res.status >= 500) {
           return reject(new Error('SGDB API request failed'));
         }
@@ -204,7 +210,7 @@ export const SGDBProvider: FC<{ children: ReactNode }> = ({ children }) => {
         signal?.removeEventListener('abort', abortHandler);
       });
     });
-  }, [get]);
+  }, [get, set]);
 
   const getImageAsB64 = useCallback(async (location: string, path = false) : Promise<string | null> => {
     log('downloading', location);
